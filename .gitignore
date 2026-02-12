@@ -1,0 +1,27 @@
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Models and Large Files
+*.pth
+*.pkl
+*.h5
+*.ckpt
+
+# OS Specific
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Kaggle Output
+/kaggle/
+
+# IDE
+.vscode/
+.idea/
