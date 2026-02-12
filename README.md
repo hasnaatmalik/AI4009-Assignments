@@ -1,4 +1,4 @@
-# AI4009 - Advanced Intelligence Assignments
+# AI4009 - Generative AI
 
 This repository contains assignments for the **AI4009** course. Each assignment is organized into its own subdirectory.
 
