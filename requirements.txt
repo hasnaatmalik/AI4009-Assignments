@@ -1,0 +1,5 @@
+torch
+torchvision
+pillow
+numpy<2.0
+gradio==3.50.2
