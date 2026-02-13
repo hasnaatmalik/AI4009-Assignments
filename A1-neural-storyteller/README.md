@@ -6,8 +6,8 @@ This project implements an Image Captioning system using an Attention-based LSTM
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repo-url>
-    cd <your-repo-folder>
+    git clone <https://github.com/hasnaatmalik/AI4009-Assignments/tree/main/A1-neural-storyteller>
+    cd <A1-neural-storyteller>
     ```
 
 2.  **Install dependencies:**
