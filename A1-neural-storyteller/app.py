@@ -6,10 +6,9 @@ import torchvision.models as models
 from PIL import Image
 import pickle
 import os
-import gradio as gr
+import streamlit as st
 import re
 import collections
-from collections import OrderedDict
 
 # --- Device Configuration ---
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -55,15 +54,7 @@ class EncoderCNN(nn.Module):
         self.inception = models.inception_v3(pretrained=True)
         self.inception.aux_logits = False
         
-        # We want the output map for attention, but Inception's forward() returns pooled output.
-        # So we'll use ResNet50 or 101 as per the assignment's ResNet usage, 
-        # BUT the notebook used ResNet50 and saved flattened vectors?
-        # Re-reading: The notebook used ResNet50 and removed the last layer.
-        # "model = nn.Sequential(*list(model.children())[:-1])" -> This gives (batch, 2048, 1, 1).
-        # For Attention, we need (batch, features, height, width).
-        # So we should use *list(model.children())[:-2] to get (batch, 2048, 7, 7).
-        
-        # However, for this app, we'll implement the architecture assuming we pass in images.
+        # Using ResNet50 as per the notebook implementation
         resnet = models.resnet50(pretrained=True)
         modules = list(resnet.children())[:-2] # Remove avgpool and fc
         self.resnet = nn.Sequential(*modules)
@@ -77,12 +68,7 @@ class EncoderCNN(nn.Module):
         features = self.resnet(images) # (batch, 2048, 7, 7)
         features = features.permute(0, 2, 3, 1) # (batch, 7, 7, 2048)
         features = features.view(features.size(0), -1, features.size(3)) # (batch, 49, 2048)
-        
-        # Apply linear layer to each of the 49 pixels
-        # (We might not strictly need the linear projection here if the attention layer handles it,
-        # but it's common to project to embed_size).
-        # For simplicity in this assignment's context:
-        return features # Return raw features or projected? Let's stick to raw 2048 for attention to project.
+        return features
 
 class BahdanauAttention(nn.Module):
     def __init__(self, encoder_dim, decoder_dim, attention_dim):
@@ -94,16 +80,10 @@ class BahdanauAttention(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, encoder_out, decoder_hidden):
-        # encoder_out: (batch, num_pixels, encoder_dim)
-        # decoder_hidden: (batch, decoder_dim)
-        
         att1 = self.encoder_att(encoder_out) # (batch, num_pixels, attention_dim)
         att2 = self.decoder_att(decoder_hidden) # (batch, attention_dim)
-        
-        # Broadcast addition
         att = self.full_att(self.relu(att1 + att2.unsqueeze(1))) # (batch, num_pixels, 1)
         alpha = self.softmax(att) # (batch, num_pixels, 1)
-        
         context = (encoder_out * alpha).sum(dim=1) # (batch, encoder_dim)
         return context, alpha
 
@@ -128,8 +108,6 @@ class DecoderRNN(nn.Module):
         return h, c
 
     def forward(self, features, captions):
-        # features: (batch, num_pixels, encoder_dim)
-        # captions: (batch, max_len)
         embeddings = self.embedding(captions)
         h, c = self.init_hidden_state(features)
         
@@ -159,7 +137,6 @@ class DecoderRNN(nn.Module):
         batch_size = features.size(0)
         h, c = self.init_hidden_state(features)
         
-        # Start token
         word = torch.tensor(vocab.stoi['<start>']).view(1).to(device)
         embeds = self.embedding(word)
         
@@ -174,7 +151,7 @@ class DecoderRNN(nn.Module):
             lstm_input = torch.cat((embeds, gated_context), dim=1)
             h, c = self.lstm_cell(lstm_input, (h, c))
             
-            output = self.fc(h) # (1, vocab_size)
+            output = self.fc(h)
             predicted_word_idx = output.argmax(dim=1)
             
             captions.append(predicted_word_idx.item())
@@ -192,8 +169,6 @@ class DecoderRNN(nn.Module):
         k = beam_width
         h, c = self.init_hidden_state(features)
         
-        # (score, current_word_idx, h, c, sequence)
-        # sequence is a list of indices
         start_token = vocab.stoi['<start>']
         sequences = [[0.0, start_token, h, c, [start_token]]]
         
@@ -305,58 +280,77 @@ transform = transforms.Compose([
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
 ])
 
-# Global variables
-encoder_global = None
-decoder_global = None
-vocab_global = None
+# --- Streamlit Interface ---
 
-def generate_caption_gradio(image, method):
-    global encoder_global, decoder_global, vocab_global
+@st.cache_resource
+def load_model():
+    model_path = "best_model.pth"
+    vocab_path = "vocab.pkl"
     
-    if encoder_global is None:
-        # Try to load
-        model_path = "best_model.pth"
-        vocab_path = "vocab.pkl"
-        encoder_global, decoder_global, vocab_global = load_checkpoint(model_path, vocab_path)
-        
-        if encoder_global is None:
-            return "Error: Model files (best_model.pth, vocab.pkl) not found. Please run the training notebook first."
-
-    if image is None:
-        return "Please upload an image."
-
-    # Preprocess image
-    img_tensor = transform(image).unsqueeze(0).to(device)
-    
-    with torch.no_grad():
-        features = encoder_global(img_tensor) # (1, 49, 2048)
-        
-        if method == "Beam Search":
-            caption_words = decoder_global.generate_caption_beam_search(features, vocab_global, beam_width=5)
+    # Reconstruct model if needed
+    if not os.path.exists(model_path):
+        # Check for chunks
+        chunks = sorted([f for f in os.listdir(".") if f.startswith("model_chunk_")])
+        if chunks:
+            with open(model_path, "wb") as f_out:
+                for chunk in chunks:
+                    with open(chunk, "rb") as f_in:
+                        f_out.write(f_in.read())
         else:
-            caption_words, _ = decoder_global.generate_caption(features, vocab_global)
-            
-    # Clean up caption
-    caption = ' '.join(caption_words)
-    if "<end>" in caption:
-        caption = caption.split("<end>")[0]
+            return None, None, None
+
+    encoder, decoder, vocab = load_checkpoint(model_path, vocab_path)
+    return encoder, decoder, vocab
+
+def main():
+    st.set_page_config(page_title="Neural Storyteller", page_icon="🖼️")
+    st.title("Neural Storyteller: Image Captioning 🖼️")
+    st.markdown("Upload an image to generate a caption using an **Attention-based LSTM model**.")
+    
+    # Load model
+    with st.spinner("Loading model..."):
+        encoder, decoder, vocab = load_model()
+    
+    if encoder is None:
+        st.error("Error: Model files (`best_model.pth`, `vocab.pkl`) not found. Please ensure they are in the same directory.")
+        return
+
+    # Sidebar for settings
+    st.sidebar.header("Settings")
+    method = st.sidebar.radio("Decoding Method", ["Beam Search", "Greedy"], index=0)
+    
+    # File Uploader
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
+    if uploaded_file is not None:
+        image = Image.open(uploaded_file).convert("RGB")
+        col1, col2 = st.columns(2)
         
-    return caption.strip()
-
-
-# --- Gradio Interface ---
+        with col1:
+            st.image(image, caption="Uploaded Image", use_container_width=True)
+        
+        with col2:
+            if st.button("Generate Caption"):
+                with st.spinner("Generating caption..."):
+                    # Preprocess image
+                    img_tensor = transform(image).unsqueeze(0).to(device)
+                    
+                    with torch.no_grad():
+                        features = encoder(img_tensor) # (1, 49, 2048)
+                        
+                        if method == "Beam Search":
+                            caption_words = decoder.generate_caption_beam_search(features, vocab, beam_width=5)
+                        else:
+                            caption_words, _ = decoder.generate_caption(features, vocab)
+                            
+                    # Clean up caption
+                    caption = ' '.join(caption_words)
+                    if "<end>" in caption:
+                        caption = caption.split("<end>")[0]
+                    
+                    st.success(f"**Caption:** {caption.strip()}")
+            else:
+                 st.info("Click the button to generate a caption.")
 
 if __name__ == "__main__":
-    iface = gr.Interface(
-        fn=generate_caption_gradio,
-        inputs=[
-            gr.Image(type="pil", label="Upload Image"),
-            gr.Radio(["Greedy", "Beam Search"], label="Decoding Method", value="Beam Search")
-        ],
-        outputs=gr.Textbox(label="Generated Caption"),
-        title="Neural Storyteller: Image Captioning",
-        description="Upload an image to generate a caption using an Attention-based LSTM model.",
-        examples=[["example.jpg", "Beam Search"]] if os.path.exists("example.jpg") else []
-    )
-    
-    iface.launch()
+    main()

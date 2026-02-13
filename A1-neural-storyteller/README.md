@@ -1,41 +1,38 @@
-# Assignment 1: Neural Storyteller (Image Captioning)
+# Neural Storyteller: Image Captioning
 
-An AI-powered image captioning system that generates descriptive sentences for identifying images using deep learning.
+This project implements an Image Captioning system using an Attention-based LSTM model with a Streamlit interface.
 
-## Overview
+## Local Setup
 
-This project implements an **Encoder-Decoder architecture** with **Bahdanau Attention**:
--   **Encoder**: ResNet50 (modified to extract spatial features).
--   **Decoder**: LSTM with Attention mechanism.
--   **Dataset**: Flickr30k.
+1.  **Clone the repository:**
+    ```bash
+    git clone <your-repo-url>
+    cd <your-repo-folder>
+    ```
 
-## Project Structure
+2.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
--   `AI_ASS01_22F_3389,22F-3354.ipynb`: Jupyter Notebook for training the model on Kaggle.
--   `app.py`: Standalone Gradio web application for inference.
--   `best_model.pth`: Trained model weights (generated from Kaggle).
--   `vocab.pkl`: Vocabulary dictionary (generated from Kaggle).
+3.  **Run the app:**
+    ```bash
+    streamlit run app.py
+    ```
+    *Note: On the first run, the app will reconstruct the large model file from chunks (`model_chunk_*`).*
 
-## How to Run
+## Deploying to Streamlit Cloud
 
-### 1. Prerequisites (Model Files)
-Since training takes hours, you need the trained model files.
-1.  Upload the notebook (`.ipynb`) to Kaggle.
-2.  Add the **Flickr30k** dataset.
-3.  Run the notebook (or at least the first few cells to get `vocab.pkl`).
-4.  Download `best_model.pth` and `vocab.pkl` from the Kaggle Output section.
-5.  Place them in this directory.
+1.  **Push to GitHub:**
+    Ensure your code is pushed to a GitHub repository. The model file is split into chunks to comply with GitHub's file size limits.
 
-### 2. Run the App
-Make sure your virtual environment is activated (see root README).
+2.  **Sign in to Streamlit Cloud:**
+    Go to [share.streamlit.io](https://share.streamlit.io/) and sign in with your GitHub account.
 
-```bash
-# From AI4009-Assignments/A1-neural-storyteller/
-python3 app.py
-```
+3.  **Deploy:**
+    - Click "New app".
+    - Select your repository, branch (usually `main`), and the main file path (`app.py`).
+    - Click "Deploy".
 
-This will launch a web interface at `http://127.0.0.1:7860`.
-
-### 3. Features
--   **Greedy Search**: Generates the most likely next word at each step. Fast but can get stuck in loops.
--   **Beam Search**: Keeps track of `k` most likely sequences. Slower but produces better, more coherent sentences.
+4.  **Enjoy!**
+    Your app should be live in a few minutes.
