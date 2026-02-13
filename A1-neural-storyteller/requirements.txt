@@ -6,4 +6,4 @@ numpy
 nltk
 matplotlib
 tqdm
-streamlit
+streamlit>=1.30.0
