@@ -13,7 +13,7 @@ __pycache__/
 *.pkl
 *.h5
 *.ckpt
-
+*.pt
 # OS Specific
 .DS_Store
 .AppleDouble

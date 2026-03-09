@@ -5,6 +5,7 @@ This repository contains assignments for the **AI4009** course. Each assignment 
 ## Assignment List
 
 *   **[A1 - Neural Storyteller](./A1-neural-storyteller/README.md)**: Image Captioning using Encoder-Decoder architecture with Bahdanau Attention.
+*   **[A2 - Image Representation](./A2-image-representation-MAE/README.md)**: Self-Supervised Vision Transformer (Masked Autoencoder / MAE) with Interactive Gradio Demo.
 
 ## Setup Instructions
 
