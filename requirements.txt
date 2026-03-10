@@ -2,5 +2,9 @@ torch
 torchvision
 pillow
 numpy
-streamlit
+streamlit>=1.30.0
 gradio
+pandas
+nltk
+matplotlib
+tqdm

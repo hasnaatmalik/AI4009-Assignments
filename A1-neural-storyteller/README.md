@@ -6,17 +6,20 @@ This project implements an Image Captioning system using an Attention-based LSTM
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/hasnaatmalik/AI4009-Assignments/tree/main/A1-neural-storyteller
-    cd A1-neural-storyteller
+    git clone https://github.com/hasnaatmalik/AI4009-Assignments
+    cd AI4009-Assignments
     ```
 
 2.  **Install dependencies:**
+    Activate your shared virtual environment and install the root requirements:
     ```bash
+    source .venv/bin/activate
     pip install -r requirements.txt
     ```
 
 3.  **Run the app:**
     ```bash
+    cd A1-neural-storyteller
     streamlit run app.py
     ```
     *Note: On the first run, the app will reconstruct the large model file from chunks (`model_chunk_*`).*

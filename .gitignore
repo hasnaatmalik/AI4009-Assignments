@@ -25,3 +25,9 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+
+# Assignment Data / Artifacts
+.env
+ipynb_checkpoints/
+best_model.pth
+model_chunk_*

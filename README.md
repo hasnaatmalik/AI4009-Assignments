@@ -13,7 +13,7 @@ This project uses a shared virtual environment for all assignments to save disk 
 
 ### 1. Create Virtual Environment (One-time Setup)
 
-Run this from the root `AI4009-Assignments` directory:
+Run this from the root `AI4009-Assignments` directory. This environment will be shared across all assignments!
 
 ```bash
 # Create virtual environment
@@ -22,7 +22,7 @@ python3 -m venv .venv
 # Activate it
 source .venv/bin/activate
 
-# Install dependencies
+# Install all dependencies for all projects
 pip install -r requirements.txt
 ```
 

@@ -1,9 +1,0 @@
-torch
-torchvision
-pillow
-pandas
-numpy
-nltk
-matplotlib
-tqdm
-streamlit>=1.30.0
