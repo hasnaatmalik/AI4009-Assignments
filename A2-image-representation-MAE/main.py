@@ -222,7 +222,7 @@ def load_model(checkpoint_path):
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Model checkpoint not found: {checkpoint_path}. Please download it from Kaggle and place it in this directory.")
     
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     config = checkpoint['config']
     
     model = MAE(
@@ -257,6 +257,8 @@ def denormalize(tensor, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]):
 def mae_reconstruct(input_image, mask_ratio):
     if model is None:
         return None, None, None, "Error: Model not loaded. Please ensure 'mae_final.pt' is in the directory."
+    if input_image is None:
+        return None, None, None, "Error: Please upload a valid image before submitting."
     
     transform = transforms.Compose([
         transforms.Resize((cfg['image_size'], cfg['image_size'])),
@@ -316,6 +318,6 @@ if model is not None:
     )
     
     if __name__ == "__main__":
-        demo.launch()
+        demo.launch(server_name="127.0.0.1")
 else:
     print("Failed to initialize Gradio app because the model is missing.")

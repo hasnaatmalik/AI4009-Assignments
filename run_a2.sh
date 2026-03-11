@@ -13,7 +13,11 @@ if [ -f "$FILE" ]; then
     echo "✅ Success: $FILE exists."
     echo "Starting Gradio application..."
     cd A2-image-representation-MAE
-    python main.py
+    if [ -f "../.venv/bin/python" ]; then
+        ../.venv/bin/python main.py
+    else
+        python main.py
+    fi
 else
     echo "❌ Error: Model checkpoint not found."
     echo ""
@@ -22,5 +26,5 @@ else
     echo ""
     echo "Once the file is placed, simply run this script again or run:"
     echo "  cd A2-image-representation-MAE"
-    echo "  python main.py"
+    echo "  ../.venv/bin/python main.py"
 fi

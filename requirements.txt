@@ -3,7 +3,7 @@ torchvision
 pillow
 numpy
 streamlit>=1.30.0
-gradio
+gradio~=3.50.0
 pandas
 nltk
 matplotlib
