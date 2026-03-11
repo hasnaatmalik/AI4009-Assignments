@@ -31,3 +31,4 @@ __pycache__/
 ipynb_checkpoints/
 best_model.pth
 model_chunk_*
+flagged/
