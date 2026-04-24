@@ -8,3 +8,4 @@ pandas
 nltk
 matplotlib
 tqdm
+pytorch-fid
