@@ -232,7 +232,7 @@ def load_model():
 
     if not os.path.exists(cfg.CKPT_PATH):
         raise FileNotFoundError(
-            f"\n❌  Checkpoint not found at '{cfg.CKPT_PATH}'\n"
+            f"\nCheckpoint not found at '{cfg.CKPT_PATH}'\n"
             "    Download 'ddpm_ckpt.pt' from your Kaggle output and place it\n"
             "    in the same folder as app.py.\n"
         )
@@ -243,7 +243,7 @@ def load_model():
     state = {k.replace("module.", ""): v for k, v in state.items()}
     model.load_state_dict(state)
     model.eval()
-    print(f"✅  Checkpoint loaded from '{cfg.CKPT_PATH}'")
+    print(f"Checkpoint loaded from '{cfg.CKPT_PATH}'")
     return model
 
 
